@@ -1,0 +1,14 @@
+{
+    "queryLog": {
+        "path": "log/queries.log",
+        "maxsize": 100,
+        "keep": 2
+    },
+
+    "platform": {
+        "cdnexample.com": {
+            "domainFile": "cdnexample.com.json",
+            "platFile": "cdnexample.json"
+        }
+    }
+}
