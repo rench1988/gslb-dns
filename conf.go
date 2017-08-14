@@ -196,6 +196,8 @@ func platsReader(ps zone.Plats) {
 func platsReadConf(cf *gconf, ps zone.Plats) {
 	seenPlats := map[string]bool{}
 
+	changed := false
+
 	for k, plat := range cf.Platforms {
 		filename := plat.Nodes
 
@@ -227,6 +229,8 @@ func platsReadConf(cf *gconf, ps zone.Plats) {
 			}
 
 			(lastPlatRead[k]).hash = sha256
+
+			changed = true
 		}
 
 		seenPlats[k] = true
@@ -238,6 +242,10 @@ func platsReadConf(cf *gconf, ps zone.Plats) {
 		}
 		log.Println("Removing plat", platName)
 		delete(lastPlatRead, platName)
-		delete(ps, platName)
+		ps.DeletePlatInfo(platName)
+
+		changed = true
 	}
+
+	ps.HealthCheck(changed)
 }

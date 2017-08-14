@@ -506,6 +506,7 @@ func (z *Zone) AddLabel(k string) *Label {
 	z.Labels[k] = new(Label)
 	label := z.Labels[k]
 	label.Label = k
+	label.Platform = z.Platform
 	label.Ttl = z.Options.Ttl
 	label.MaxHosts = z.Options.MaxHosts
 
@@ -548,6 +549,10 @@ func (z *Zone) findLabels(s string, targets []string, qts qTypes) (*Label, uint1
 				default:
 					// return the label if it has the right record
 					if label.Records[qtype] != nil && len(label.Records[qtype]) > 0 {
+						return label, qtype
+					}
+
+					if qtype == dns.TypeA || qtype == dns.TypeAAAA {
 						return label, qtype
 					}
 				}

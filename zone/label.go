@@ -2,6 +2,7 @@ package zone
 
 import (
 	"math/rand"
+	"net"
 
 	"github.com/miekg/dns"
 )
@@ -35,13 +36,13 @@ func (l *Label) firstRR(dnsType uint16) dns.RR {
 	return l.Records[dnsType][0].RR
 }
 
-func (label *Label) Picker(qtype uint16, max int) Records {
+func (label *Label) Picker(qtype uint16, max int, area string) Records {
 
 	if qtype == dns.TypeANY {
 		var result []Record
 		for rtype := range label.Records {
 
-			rtypeRecords := label.Picker(rtype, max)
+			rtypeRecords := label.Picker(rtype, max, area)
 
 			tmpResult := make(Records, len(result)+len(rtypeRecords))
 
@@ -93,5 +94,45 @@ func (label *Label) Picker(qtype uint16, max int) Records {
 
 		return result
 	}
+
+	if qtype == dns.TypeA || qtype == dns.TypeAAAA {
+		ps := NewPlats()
+
+		res := ps.SearchPlatNode(label.Platform, area, qtype, max)
+		if len(res) == 0 {
+			return nil
+		}
+
+		var h dns.RR_Header
+		h.Class = dns.ClassINET
+		h.Rrtype = qtype
+		h.Name = label.Label + "." + label.Platform + "."
+
+		//result := make([]Record, len(res))
+		var result []Record
+
+		for i := 0; i < len(res); i++ {
+			record := new(Record)
+			switch qtype {
+			case dns.TypeA:
+				if x := net.ParseIP(res[i]); x != nil {
+					record.RR = &dns.A{Hdr: h, A: x}
+					break
+				}
+			case dns.TypeAAAA:
+				if x := net.ParseIP(res[i]); x != nil {
+					record.RR = &dns.AAAA{Hdr: h, AAAA: x}
+					break
+				}
+			}
+
+			if record.RR != nil {
+				result = append(result, *record)
+			}
+		}
+
+		return result
+	}
+
 	return nil
 }

@@ -145,8 +145,6 @@ func serve(w dns.ResponseWriter, req *dns.Msg, z *Zone) {
 	}
 
 	if labels == nil {
-		/*这里加入平台负载均衡的逻辑*/
-
 		firstLabel := (strings.Split(label, "."))[0]
 
 		if qle != nil {
@@ -163,7 +161,7 @@ func serve(w dns.ResponseWriter, req *dns.Msg, z *Zone) {
 		return
 	}
 
-	if servers := labels.Picker(labelQtype, labels.MaxHosts); servers != nil {
+	if servers := labels.Picker(labelQtype, labels.MaxHosts, "hunan"); servers != nil {
 		var rrs []dns.RR
 		for _, record := range servers {
 			rr := dns.Copy(record.RR)
